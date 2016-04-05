@@ -15,6 +15,10 @@ namespace ServerStressTest
 {
     internal class Client
     {
+        public const int Version = 2;
+        public const int AdministrationApiVersion = 2;
+        public const int ServerApiVersion = 1;
+
         private static readonly Random Random = new Random();
 
         private static readonly string[] Cultures =
@@ -96,7 +100,7 @@ namespace ServerStressTest
                     binaryReader = new BinaryReader(stream);
 
                     binaryWriter.Write((byte) 0); //ClientRegister
-                    binaryWriter.Write(1);
+                    binaryWriter.Write(ServerApiVersion);
 
                     if (binaryReader.ReadByte() != 0)
                         return false;
@@ -126,7 +130,6 @@ namespace ServerStressTest
 
         private bool Register(BinaryReader binaryReader, BinaryWriter binaryWriter)
         {
-            //binaryWriter.Write((byte) AuthentificationIntention.ClientRegister);
             if (binaryReader.ReadByte() != (byte) AuthentificationFeedback.GetKey)
                 return false;
 
@@ -197,8 +200,18 @@ namespace ServerStressTest
                 IsServiceRunning = Random.Next(0, 5) == 0,
                 Plugins = new List<PluginInfo>(),
                 ClientConfig =
-                    new ClientConfig(),
-                ClientVersion = Random.Next(2, 10)
+                    new ClientConfig
+                    {
+                        AntiDebugger = true,
+                        AntiTcpAnalyzer = true,
+                        Autostart = false,
+                        ChangeCreationDate = false,
+                        ClientTag = "Stress Test",
+                        ForceInstallerAdministratorRights = false,
+                        InstallService = false
+                    },
+                ClientVersion = Version,
+                ApiVersion = AdministrationApiVersion
             };
 
             var os = OperationgSystems.ElementAt(Random.Next(0, OperationgSystems.Count));
@@ -212,7 +225,6 @@ namespace ServerStressTest
             var serializer = new Serializer(typeof (BasicComputerInformation));
             serializer.Serialize(stream, data);
         }
-
 
         private string GetHardwareId()
         {
